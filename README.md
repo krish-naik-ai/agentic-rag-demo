@@ -32,3 +32,23 @@ python -m pytest -q
 
 The ingestion, retrieval, evaluation, and UI commands are documented as
 their implementation slices are added.
+
+## Ingest documents
+
+The ingestion package accepts `.pdf` and `.txt` files, chunks them with
+overlap, embeds each chunk with OpenAI, and upserts it into persistent Chroma:
+
+```python
+from pathlib import Path
+
+from agentic_rag.embeddings import OpenAIEmbeddingProvider
+from agentic_rag.ingestion import DocumentIngestionPipeline
+from agentic_rag.vector_store import ChromaVectorStore
+
+pipeline = DocumentIngestionPipeline(
+    embeddings=OpenAIEmbeddingProvider(),
+    vector_store=ChromaVectorStore("data/chroma"),
+)
+result = pipeline.ingest([Path("document.pdf")])
+print(result)
+```
