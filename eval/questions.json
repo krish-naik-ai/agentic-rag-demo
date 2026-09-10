@@ -1,0 +1,32 @@
+[
+  {
+    "id": "vector-store",
+    "question": "Which vector database does Project Atlas use?",
+    "expected_terms": ["Chroma"],
+    "should_retrieve": true
+  },
+  {
+    "id": "embedding-model",
+    "question": "Which embedding model does Project Atlas use?",
+    "expected_terms": ["text-embedding-3-small"],
+    "should_retrieve": true
+  },
+  {
+    "id": "supported-files",
+    "question": "Which document formats can Project Atlas ingest?",
+    "expected_terms": ["PDF", "text"],
+    "should_retrieve": true
+  },
+  {
+    "id": "greeting",
+    "question": "Hello! How are you?",
+    "expected_terms": [],
+    "should_retrieve": false
+  },
+  {
+    "id": "thanks",
+    "question": "Thanks for your help.",
+    "expected_terms": [],
+    "should_retrieve": false
+  }
+]

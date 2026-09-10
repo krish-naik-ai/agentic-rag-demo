@@ -26,7 +26,7 @@ Do not store it in the repository.
 ```bash
 python -m ruff check .
 python -m ruff format --check .
-python -m mypy src tests
+python -m mypy src tests scripts/evaluate.py
 python -m pytest -q
 ```
 
@@ -74,4 +74,14 @@ answer = agent.answer("What does the document say about agentic retrieval?")
 print(answer.answer)
 for citation in answer.citations:
     print(citation.label)
+```
+
+## Compare agentic and naive retrieval
+
+The evaluation script ingests the bundled sample corpus, runs a fixed question
+set through both systems, and prints per-question and aggregate score tables.
+Answer terms, retrieval decisions, and citation behavior are scored separately.
+
+```bash
+python scripts/evaluate.py
 ```
