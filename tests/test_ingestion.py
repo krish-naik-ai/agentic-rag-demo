@@ -9,6 +9,8 @@ from agentic_rag.models import DocumentChunk, SearchResult, SourceDocument
 
 
 class FakeEmbeddings:
+    identifier = "fake-embeddings"
+
     def __init__(self) -> None:
         self.document_calls: list[list[str]] = []
 
@@ -21,6 +23,8 @@ class FakeEmbeddings:
 
 
 class FakeVectorStore:
+    embedding_identifier = FakeEmbeddings.identifier
+
     def __init__(self) -> None:
         self.chunks: list[DocumentChunk] = []
         self.embeddings: list[list[float]] = []
@@ -163,6 +167,18 @@ def test_ingestion_pipeline_skips_chunks_already_in_store(tmp_path: Path) -> Non
     assert second_result == first_result
     assert len(embeddings.document_calls) == 1
     assert vector_store.upsert_calls == 1
+
+
+def test_ingestion_pipeline_rejects_mismatched_embedding_store() -> None:
+    embeddings = FakeEmbeddings()
+    vector_store = FakeVectorStore()
+    vector_store.embedding_identifier = "different-embeddings"
+
+    with pytest.raises(ValueError, match="identifiers must match"):
+        DocumentIngestionPipeline(
+            embeddings=embeddings,
+            vector_store=vector_store,
+        )
 
 
 def test_load_document_rejects_unknown_type(tmp_path: Path) -> None:

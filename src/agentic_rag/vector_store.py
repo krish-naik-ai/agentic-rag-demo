@@ -1,3 +1,4 @@
+import hashlib
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Protocol
@@ -10,6 +11,9 @@ from agentic_rag.models import DocumentChunk, SearchResult
 
 
 class VectorStore(Protocol):
+    @property
+    def embedding_identifier(self) -> str: ...
+
     def existing_ids(self, ids: Sequence[str]) -> set[str]: ...
 
     def upsert(
@@ -30,12 +34,25 @@ class ChromaVectorStore:
         self,
         persist_directory: Path | str = "data/chroma",
         collection_name: str = "documents",
+        *,
+        embedding_identifier: str,
     ) -> None:
+        if not embedding_identifier.strip():
+            raise ValueError("embedding_identifier must not be empty.")
+        self._embedding_identifier = embedding_identifier
+        namespace = hashlib.sha256(embedding_identifier.encode()).hexdigest()[:16]
         client = chromadb.PersistentClient(path=persist_directory)
         self._collection: Collection = client.get_or_create_collection(
-            name=collection_name,
-            metadata={"hnsw:space": "cosine"},
+            name=f"{collection_name}-{namespace}",
+            metadata={
+                "hnsw:space": "cosine",
+                "embedding_identifier": embedding_identifier,
+            },
         )
+
+    @property
+    def embedding_identifier(self) -> str:
+        return self._embedding_identifier
 
     def existing_ids(self, ids: Sequence[str]) -> set[str]:
         if not ids:

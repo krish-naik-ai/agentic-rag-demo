@@ -4,6 +4,9 @@ from openai import OpenAI
 
 
 class EmbeddingProvider(Protocol):
+    @property
+    def identifier(self) -> str: ...
+
     def embed_documents(self, texts: list[str]) -> list[list[float]]: ...
 
     def embed_query(self, text: str) -> list[float]: ...
@@ -17,6 +20,10 @@ class OpenAIEmbeddingProvider:
     ) -> None:
         self._model = model
         self._client = client or OpenAI()
+
+    @property
+    def identifier(self) -> str:
+        return f"openai:{self._model}"
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
         if not texts:

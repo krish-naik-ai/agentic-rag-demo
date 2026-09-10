@@ -26,7 +26,10 @@ class AppServices:
 @st.cache_resource
 def build_services() -> AppServices:
     embeddings = OpenAIEmbeddingProvider()
-    vector_store = ChromaVectorStore(CHROMA_DIRECTORY)
+    vector_store = ChromaVectorStore(
+        CHROMA_DIRECTORY,
+        embedding_identifier=embeddings.identifier,
+    )
     return AppServices(
         ingestion=DocumentIngestionPipeline(
             embeddings=embeddings,

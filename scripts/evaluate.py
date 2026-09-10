@@ -27,6 +27,7 @@ def main() -> None:
         vector_store = ChromaVectorStore(
             persist_directory=directory,
             collection_name="evaluation",
+            embedding_identifier=embeddings.identifier,
         )
         pipeline = DocumentIngestionPipeline(
             embeddings=embeddings,

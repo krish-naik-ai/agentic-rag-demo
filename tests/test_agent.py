@@ -17,6 +17,8 @@ class FakeLanguageModel:
 
 
 class FakeEmbeddings:
+    identifier = "fake-embeddings"
+
     def __init__(self) -> None:
         self.queries: list[str] = []
 
@@ -29,6 +31,8 @@ class FakeEmbeddings:
 
 
 class FakeVectorStore:
+    embedding_identifier = FakeEmbeddings.identifier
+
     def __init__(self, results: list[SearchResult]) -> None:
         self._results = results
         self.searches: list[tuple[list[float], int]] = []
