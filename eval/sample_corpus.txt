@@ -1,0 +1,12 @@
+Project Atlas is an Agentic RAG reference application. It stores document
+embeddings in a persistent local Chroma vector database and generates those
+embeddings with OpenAI's text-embedding-3-small model.
+
+Project Atlas can ingest PDF documents and UTF-8 text files. It preserves PDF
+page numbers and text source filenames so generated answers can cite the
+original chunks.
+
+The retrieval planner should search the document collection for
+document-specific questions, summaries, comparisons, quotations, and grounded
+claims. It should skip retrieval for greetings, thanks, casual conversation,
+and questions about how to use the assistant.
