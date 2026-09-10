@@ -10,6 +10,8 @@ from agentic_rag.models import DocumentChunk, SearchResult
 
 
 class VectorStore(Protocol):
+    def existing_ids(self, ids: Sequence[str]) -> set[str]: ...
+
     def upsert(
         self,
         chunks: Sequence[DocumentChunk],
@@ -34,6 +36,13 @@ class ChromaVectorStore:
             name=collection_name,
             metadata={"hnsw:space": "cosine"},
         )
+
+    def existing_ids(self, ids: Sequence[str]) -> set[str]:
+        if not ids:
+            return set()
+        unique_ids = list(dict.fromkeys(ids))
+        result = self._collection.get(ids=unique_ids, include=[])
+        return set(result["ids"])
 
     def upsert(
         self,

@@ -9,7 +9,11 @@ from agentic_rag.models import DocumentChunk, SearchResult, SourceDocument
 
 
 class FakeEmbeddings:
+    def __init__(self) -> None:
+        self.document_calls: list[list[str]] = []
+
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        self.document_calls.append(texts)
         return [[float(len(text)), 1.0] for text in texts]
 
     def embed_query(self, text: str) -> list[float]:
@@ -20,14 +24,20 @@ class FakeVectorStore:
     def __init__(self) -> None:
         self.chunks: list[DocumentChunk] = []
         self.embeddings: list[list[float]] = []
+        self.upsert_calls = 0
+
+    def existing_ids(self, ids: Sequence[str]) -> set[str]:
+        stored_ids = {chunk.id for chunk in self.chunks}
+        return stored_ids.intersection(ids)
 
     def upsert(
         self,
         chunks: Sequence[DocumentChunk],
         embeddings: Sequence[Sequence[float]],
     ) -> None:
-        self.chunks = list(chunks)
-        self.embeddings = [list(embedding) for embedding in embeddings]
+        self.upsert_calls += 1
+        self.chunks.extend(chunks)
+        self.embeddings.extend(list(embedding) for embedding in embeddings)
 
     def search(
         self,
@@ -115,9 +125,10 @@ def test_chunk_documents_rejects_invalid_sizes(
 def test_ingestion_pipeline_embeds_and_stores_chunks(tmp_path: Path) -> None:
     path = tmp_path / "notes.txt"
     path.write_text("one two three four five", encoding="utf-8")
+    embeddings = FakeEmbeddings()
     vector_store = FakeVectorStore()
     pipeline = DocumentIngestionPipeline(
-        embeddings=FakeEmbeddings(),
+        embeddings=embeddings,
         vector_store=vector_store,
         chunk_size=12,
         chunk_overlap=2,
@@ -131,6 +142,27 @@ def test_ingestion_pipeline_embeds_and_stores_chunks(tmp_path: Path) -> None:
     assert vector_store.embeddings == [
         [float(len(chunk.text)), 1.0] for chunk in vector_store.chunks
     ]
+    assert embeddings.document_calls == [[chunk.text for chunk in vector_store.chunks]]
+
+
+def test_ingestion_pipeline_skips_chunks_already_in_store(tmp_path: Path) -> None:
+    path = tmp_path / "notes.txt"
+    path.write_text("one two three four five", encoding="utf-8")
+    embeddings = FakeEmbeddings()
+    vector_store = FakeVectorStore()
+    pipeline = DocumentIngestionPipeline(
+        embeddings=embeddings,
+        vector_store=vector_store,
+        chunk_size=12,
+        chunk_overlap=2,
+    )
+
+    first_result = pipeline.ingest([path])
+    second_result = pipeline.ingest([path])
+
+    assert second_result == first_result
+    assert len(embeddings.document_calls) == 1
+    assert vector_store.upsert_calls == 1
 
 
 def test_load_document_rejects_unknown_type(tmp_path: Path) -> None:

@@ -129,9 +129,16 @@ class DocumentIngestionPipeline:
             chunk_size=self._chunk_size,
             chunk_overlap=self._chunk_overlap,
         )
-        embeddings = self._embeddings.embed_documents([chunk.text for chunk in chunks])
-        self._vector_store.upsert(chunks, embeddings)
+        unique_chunks = list({chunk.id: chunk for chunk in chunks}.values())
+        existing_ids = self._vector_store.existing_ids(
+            [chunk.id for chunk in unique_chunks]
+        )
+        new_chunks = [chunk for chunk in unique_chunks if chunk.id not in existing_ids]
+        embeddings = self._embeddings.embed_documents(
+            [chunk.text for chunk in new_chunks]
+        )
+        self._vector_store.upsert(new_chunks, embeddings)
         return IngestionResult(
             documents_loaded=len(documents),
-            chunks_stored=len(chunks),
+            chunks_stored=len(unique_chunks),
         )

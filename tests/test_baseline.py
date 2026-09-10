@@ -32,6 +32,9 @@ class FakeVectorStore:
     def __init__(self, results: Sequence[SearchResult]) -> None:
         self.results = list(results)
 
+    def existing_ids(self, ids: Sequence[str]) -> set[str]:
+        raise AssertionError("The retrieval baseline must not inspect stored IDs.")
+
     def upsert(
         self,
         chunks: Sequence[DocumentChunk],

@@ -33,6 +33,9 @@ class FakeVectorStore:
         self._results = results
         self.searches: list[tuple[list[float], int]] = []
 
+    def existing_ids(self, ids: Sequence[str]) -> set[str]:
+        raise AssertionError("The retrieval agent must not inspect stored IDs.")
+
     def upsert(
         self,
         chunks: Sequence[DocumentChunk],

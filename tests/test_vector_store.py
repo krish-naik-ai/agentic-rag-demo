@@ -43,3 +43,18 @@ def test_chroma_vector_store_requires_matching_embeddings(tmp_path: Path) -> Non
 
     with pytest.raises(ValueError, match="exactly one embedding"):
         store.upsert([chunk], [])
+
+
+def test_chroma_vector_store_returns_existing_ids(tmp_path: Path) -> None:
+    store = ChromaVectorStore(tmp_path / "chroma")
+    chunk = DocumentChunk(
+        id="stored",
+        source="guide.txt",
+        text="content",
+        chunk_index=0,
+    )
+    store.upsert([chunk], [[1.0, 0.0]])
+
+    existing_ids = store.existing_ids(["missing", "stored", "stored"])
+
+    assert existing_ids == {"stored"}
