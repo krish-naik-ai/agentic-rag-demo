@@ -85,3 +85,15 @@ Answer terms, retrieval decisions, and citation behavior are scored separately.
 ```bash
 python scripts/evaluate.py
 ```
+
+## Run the chat interface
+
+Start the Streamlit app, upload one or more PDF or text documents from the
+sidebar, ingest them, and ask questions in the chat.
+
+```bash
+streamlit run app.py
+```
+
+Uploaded documents and the persistent Chroma collection are written beneath
+the ignored `data/` directory.
