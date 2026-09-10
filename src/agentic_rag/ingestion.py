@@ -134,10 +134,11 @@ class DocumentIngestionPipeline:
             [chunk.id for chunk in unique_chunks]
         )
         new_chunks = [chunk for chunk in unique_chunks if chunk.id not in existing_ids]
-        embeddings = self._embeddings.embed_documents(
-            [chunk.text for chunk in new_chunks]
-        )
-        self._vector_store.upsert(new_chunks, embeddings)
+        if new_chunks:
+            embeddings = self._embeddings.embed_documents(
+                [chunk.text for chunk in new_chunks]
+            )
+            self._vector_store.upsert(new_chunks, embeddings)
         return IngestionResult(
             documents_loaded=len(documents),
             chunks_stored=len(unique_chunks),
