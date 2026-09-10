@@ -69,6 +69,10 @@ class RetrievalAgent:
     ) -> None:
         if top_k <= 0:
             raise ValueError("top_k must be positive.")
+        if embeddings.identifier != vector_store.embedding_identifier:
+            raise ValueError(
+                "Embedding provider and vector store identifiers must match."
+            )
         self._language_model = language_model
         self._embeddings = embeddings
         self._vector_store = vector_store

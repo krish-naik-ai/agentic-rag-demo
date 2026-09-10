@@ -7,7 +7,10 @@ from agentic_rag.vector_store import ChromaVectorStore
 
 
 def test_chroma_vector_store_upserts_and_searches(tmp_path: Path) -> None:
-    store = ChromaVectorStore(tmp_path / "chroma")
+    store = ChromaVectorStore(
+        tmp_path / "chroma",
+        embedding_identifier="test-model",
+    )
     chunks = [
         DocumentChunk(
             id="agentic",
@@ -33,7 +36,10 @@ def test_chroma_vector_store_upserts_and_searches(tmp_path: Path) -> None:
 
 
 def test_chroma_vector_store_requires_matching_embeddings(tmp_path: Path) -> None:
-    store = ChromaVectorStore(tmp_path / "chroma")
+    store = ChromaVectorStore(
+        tmp_path / "chroma",
+        embedding_identifier="test-model",
+    )
     chunk = DocumentChunk(
         id="chunk",
         source="guide.txt",
@@ -43,3 +49,45 @@ def test_chroma_vector_store_requires_matching_embeddings(tmp_path: Path) -> Non
 
     with pytest.raises(ValueError, match="exactly one embedding"):
         store.upsert([chunk], [])
+
+
+def test_chroma_vector_store_returns_existing_ids(tmp_path: Path) -> None:
+    store = ChromaVectorStore(
+        tmp_path / "chroma",
+        embedding_identifier="test-model",
+    )
+    chunk = DocumentChunk(
+        id="stored",
+        source="guide.txt",
+        text="content",
+        chunk_index=0,
+    )
+    store.upsert([chunk], [[1.0, 0.0]])
+
+    existing_ids = store.existing_ids(["missing", "stored", "stored"])
+
+    assert existing_ids == {"stored"}
+
+
+def test_chroma_vector_store_separates_embedding_identifiers(
+    tmp_path: Path,
+) -> None:
+    first_store = ChromaVectorStore(
+        tmp_path / "chroma",
+        embedding_identifier="first-model",
+    )
+    second_store = ChromaVectorStore(
+        tmp_path / "chroma",
+        embedding_identifier="second-model",
+    )
+    chunk = DocumentChunk(
+        id="stored",
+        source="guide.txt",
+        text="content",
+        chunk_index=0,
+    )
+    first_store.upsert([chunk], [[1.0, 0.0]])
+
+    assert second_store.existing_ids([chunk.id]) == set()
+    second_store.upsert([chunk], [[1.0, 0.0, 0.0]])
+    assert second_store.search([1.0, 0.0, 0.0])[0].chunk == chunk

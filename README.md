@@ -45,9 +45,13 @@ from agentic_rag.embeddings import OpenAIEmbeddingProvider
 from agentic_rag.ingestion import DocumentIngestionPipeline
 from agentic_rag.vector_store import ChromaVectorStore
 
+embeddings = OpenAIEmbeddingProvider()
 pipeline = DocumentIngestionPipeline(
-    embeddings=OpenAIEmbeddingProvider(),
-    vector_store=ChromaVectorStore("data/chroma"),
+    embeddings=embeddings,
+    vector_store=ChromaVectorStore(
+        "data/chroma",
+        embedding_identifier=embeddings.identifier,
+    ),
 )
 result = pipeline.ingest([Path("document.pdf")])
 print(result)
@@ -65,10 +69,14 @@ from agentic_rag.embeddings import OpenAIEmbeddingProvider
 from agentic_rag.llm import OpenAIChatModel
 from agentic_rag.vector_store import ChromaVectorStore
 
+embeddings = OpenAIEmbeddingProvider()
 agent = RetrievalAgent(
     language_model=OpenAIChatModel(),
-    embeddings=OpenAIEmbeddingProvider(),
-    vector_store=ChromaVectorStore("data/chroma"),
+    embeddings=embeddings,
+    vector_store=ChromaVectorStore(
+        "data/chroma",
+        embedding_identifier=embeddings.identifier,
+    ),
 )
 answer = agent.answer("What does the document say about agentic retrieval?")
 print(answer.answer)

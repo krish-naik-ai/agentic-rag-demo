@@ -117,6 +117,10 @@ class DocumentIngestionPipeline:
         chunk_size: int = 1_000,
         chunk_overlap: int = 150,
     ) -> None:
+        if embeddings.identifier != vector_store.embedding_identifier:
+            raise ValueError(
+                "Embedding provider and vector store identifiers must match."
+            )
         self._embeddings = embeddings
         self._vector_store = vector_store
         self._chunk_size = chunk_size
@@ -129,9 +133,17 @@ class DocumentIngestionPipeline:
             chunk_size=self._chunk_size,
             chunk_overlap=self._chunk_overlap,
         )
-        embeddings = self._embeddings.embed_documents([chunk.text for chunk in chunks])
-        self._vector_store.upsert(chunks, embeddings)
+        unique_chunks = list({chunk.id: chunk for chunk in chunks}.values())
+        existing_ids = self._vector_store.existing_ids(
+            [chunk.id for chunk in unique_chunks]
+        )
+        new_chunks = [chunk for chunk in unique_chunks if chunk.id not in existing_ids]
+        if new_chunks:
+            embeddings = self._embeddings.embed_documents(
+                [chunk.text for chunk in new_chunks]
+            )
+            self._vector_store.upsert(new_chunks, embeddings)
         return IngestionResult(
             documents_loaded=len(documents),
-            chunks_stored=len(chunks),
+            chunks_stored=len(unique_chunks),
         )
