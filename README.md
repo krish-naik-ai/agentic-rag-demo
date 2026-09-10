@@ -52,3 +52,26 @@ pipeline = DocumentIngestionPipeline(
 result = pipeline.ingest([Path("document.pdf")])
 print(result)
 ```
+
+## Ask with agentic retrieval
+
+`RetrievalAgent` first asks the model whether document evidence is needed.
+When it is, the agent rewrites the search query, retrieves relevant chunks,
+and only accepts answers citing known source IDs.
+
+```python
+from agentic_rag.agent import RetrievalAgent
+from agentic_rag.embeddings import OpenAIEmbeddingProvider
+from agentic_rag.llm import OpenAIChatModel
+from agentic_rag.vector_store import ChromaVectorStore
+
+agent = RetrievalAgent(
+    language_model=OpenAIChatModel(),
+    embeddings=OpenAIEmbeddingProvider(),
+    vector_store=ChromaVectorStore("data/chroma"),
+)
+answer = agent.answer("What does the document say about agentic retrieval?")
+print(answer.answer)
+for citation in answer.citations:
+    print(citation.label)
+```
